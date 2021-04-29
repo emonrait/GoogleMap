@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="login_card_corner_radius_base">5</dimen>
+    <dimen name="input_padding_letf_base">5</dimen>
+    <dimen name="textsize_base">14</dimen>
+    <dimen name="input_padding_right_base">5</dimen>
+</resources>
