@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.googlemap"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -48,10 +48,16 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
+    
+        implementation 'com.google.android.libraries.places:places:2.4.0'
+
+
 
     // maps
-    implementation 'com.google.android.gms:play-services-maps:16.0.0'
+   // implementation 'com.google.android.gms:play-services-maps:16.0.0'
 
     // location
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+
+    implementation 'com.google.android.gms:play-services-maps:16.1.0'
 }

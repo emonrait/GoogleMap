@@ -1,6 +1,5 @@
 package eraapps.bankasia.bdinternetbanking.apps.room
 
-import android.app.Dialog
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
@@ -41,7 +40,7 @@ class AtmListAdapter(
     }
 
     interface OnItemClickListener {
-        fun onItemClick(item: AtmRoomModel?)
+        fun onItemClick(position: AtmRoomModel)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -62,7 +61,7 @@ class AtmListAdapter(
 
         holder.itemView.atmLocationmap.setOnClickListener {
             Toast.makeText(mcontext, currentItem.atmLocation.toString(), Toast.LENGTH_SHORT).show()
-            val selectedList: AtmRoomModel = requestFilterList[position]
+            val selectedList = requestFilterList[position]
             listener.onItemClick(selectedList)
 
         }

@@ -1,5 +1,7 @@
 package eraapps.bankasia.bdinternetbanking.apps.room
 
+import java.io.Serializable
+
 
 data class AtmRoomModel(
 
@@ -22,5 +24,5 @@ data class AtmRoomModel(
     var distance: Float? = 0f
 
 
-)
+):Serializable
 

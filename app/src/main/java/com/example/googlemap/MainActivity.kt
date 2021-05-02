@@ -1,17 +1,21 @@
 package com.example.googlemap
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import eraapps.bankasia.bdinternetbanking.apps.room.AtmListAdapter
 import eraapps.bankasia.bdinternetbanking.apps.room.AtmRoomModel
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.ArrayList
+import java.util.*
+
+const val EXTRA_USER_MAP = "EXTRA_USER_MAP"
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var globalVariable: GlobalVariable
 
     private lateinit var adapter: AtmListAdapter
     private lateinit var requestList: ArrayList<AtmRoomModel>
@@ -22,10 +26,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        globalVariable = this.applicationContext as GlobalVariable
+
+
         atmRecyclerView = findViewById(R.id.atmRecyclerView)
 
         requestList = ArrayList<AtmRoomModel>()
-
+        globalVariable.atmList = requestList
         //23.7496845,90.414654
 
         var a = AtmRoomModel(1, "1", "A", "23.7496845", "90.414654", 25f)
@@ -58,7 +65,13 @@ class MainActivity : AppCompatActivity() {
     fun dataShow() {
         //  Recylerview
         adapter = AtmListAdapter(requestList, this, object : AtmListAdapter.OnItemClickListener {
-            override fun onItemClick(item: AtmRoomModel?) {
+            override fun onItemClick(item: AtmRoomModel) {
+                val i = Intent(applicationContext, DisplayMapsActivity::class.java)
+                i.putExtra("lat", item?.atmLatitued)
+                i.putExtra("log", item?.atmLogitude)
+                i.putExtra("loc", item?.atmLocation)
+                //i.putExtra(EXTRA_USER_MAP,requestList[item])
+                startActivity(i)
 
             }
         })
