@@ -3,15 +3,16 @@ package com.example.googlemap
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -25,6 +26,9 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.android.synthetic.main.activity_display_maps.*
+import java.text.DecimalFormat
+import java.util.*
+
 
 class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
     var log = 0.0
@@ -40,8 +44,6 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
     // The entry point to the Places API.
     private lateinit var placesClient: PlacesClient
 
-    // The entry point to the Fused Location Provider.
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
@@ -102,7 +104,6 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
         // val sydney = LatLng(-34.0, 151.0)
         val boundBuilder = LatLngBounds.Builder()
 
@@ -111,8 +112,6 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val latLng = LatLng(place.atmLogitude.toDouble(), place.atmLatitued.toDouble())
             boundBuilder.include(latLng)
             mMap.addMarker(MarkerOptions().position(latLng).title(place.atmLocation))
-
-            Log.e("VALUE-->", place.toString())
         }
         // mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))
@@ -125,6 +124,13 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
+
+        showCurrentPlace()
+
+        /*  CalculationByDistance(
+              LatLng(Location, log),
+              LatLng(lat, log)
+          )*/
 
 /*
         val sydney = LatLng(log, lat)
@@ -213,12 +219,42 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
          */
         try {
             if (locationPermissionGranted) {
+
+                val geocoder: Geocoder
+                var addresses: List<Address>
+                geocoder = Geocoder(this, Locale.getDefault())
+
+
                 val locationResult = fusedLocationClient.lastLocation
                 locationResult.addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null) {
+
+                            addresses = geocoder.getFromLocation(
+                                lastKnownLocation!!.latitude,
+                                lastKnownLocation!!.longitude,
+                                1
+                            ) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+
+                            val address: String =
+                                addresses[0].getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+
+                            val city: String = addresses[0].getLocality()
+                            val state: String = addresses[0].getAdminArea()
+                            val country: String = addresses[0].getCountryName()
+                            val postalCode: String = addresses[0].getPostalCode()
+                            val knownName: String = addresses[0].getFeatureName()
+
+                            val options = MarkerOptions().position(
+                                LatLng(
+                                    lastKnownLocation!!.latitude,
+                                    lastKnownLocation!!.longitude
+                                )
+                            ).title(address)
+
                             mMap?.moveCamera(
                                 CameraUpdateFactory.newLatLngZoom(
                                     LatLng(
@@ -227,6 +263,8 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                     ), DEFAULT_ZOOM.toFloat()
                                 )
                             )
+                            mMap?.addMarker(options)
+
                         }
                     } else {
                         Log.d(TAG, "Current location is null. Using defaults.")
@@ -309,5 +347,31 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
             // Prompt the user for permission.
             getLocationPermission()
         }
+    }
+
+    fun CalculationByDistance(StartP: LatLng, EndP: LatLng): Double {
+        val Radius = 6371 // radius of earth in Km
+        val lat1 = StartP.latitude
+        val lat2 = EndP.latitude
+        val lon1 = StartP.longitude
+        val lon2 = EndP.longitude
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = (Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + (Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+                * Math.sin(dLon / 2)))
+        val c = 2 * Math.asin(Math.sqrt(a))
+        val valueResult = Radius * c
+        val km = valueResult / 1
+        val newFormat = DecimalFormat("####")
+        val kmInDec: Int = Integer.valueOf(newFormat.format(km))
+        val meter = valueResult % 1000
+        val meterInDec: Int = Integer.valueOf(newFormat.format(meter))
+        Log.i(
+            "Radius Value", "" + valueResult + "   KM  " + kmInDec
+                    + " Meter   " + meterInDec
+        )
+        return Radius * c
     }
 }
