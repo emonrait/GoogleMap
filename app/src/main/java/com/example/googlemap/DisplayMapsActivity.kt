@@ -17,10 +17,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
@@ -30,12 +27,19 @@ import java.text.DecimalFormat
 import java.util.*
 
 
-class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class DisplayMapsActivity : AppCompatActivity(),
+    OnMapReadyCallback,
+    GoogleMap.OnMarkerClickListener,
+    GoogleMap.OnMarkerDragListener {
     var log = 0.0
     var lat = 0.0
     var loc = ""
     private lateinit var globalVariable: GlobalVariable
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    var end_lat = 0.0
+    var end_long = 0.0
+    var latitude = 0.0
+    var longitude = 0.0
 
     private lateinit var mMap: GoogleMap
 
@@ -70,8 +74,6 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
         placesClient = Places.createClient(this)
 
 
-
-
         log = intent.getStringExtra("log")!!.toDouble()
         lat = intent.getStringExtra("lat")!!.toDouble()
         loc = intent.getStringExtra("loc")!!.toString()
@@ -104,31 +106,31 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // val sydney = LatLng(-34.0, 151.0)
+        val sydney = LatLng(-34.0, 151.0)
         val boundBuilder = LatLngBounds.Builder()
 
-
+/*
         for (place in globalVariable.atmList!!) {
             val latLng = LatLng(place.atmLogitude.toDouble(), place.atmLatitued.toDouble())
             boundBuilder.include(latLng)
             mMap.addMarker(MarkerOptions().position(latLng).title(place.atmLocation))
         }
         // mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))*/
 
         // Prompt the user for permission.
         getLocationPermission()
 
         // Turn on the My Location layer and the related control on the map.
-        updateLocationUI()
+        // updateLocationUI()
 
         // Get the current location of the device and set the position of the map.
-        getDeviceLocation()
+        // getDeviceLocation()
 
-        showCurrentPlace()
+        //  showCurrentPlace()
 
         /*  CalculationByDistance(
-              LatLng(Location, log),
+              sydney,
               LatLng(lat, log)
           )*/
 
@@ -137,6 +139,11 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mMap.addMarker(MarkerOptions().position(sydney).title(loc))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))*/
+
+        mMap.setOnMarkerClickListener(this)
+        mMap.setOnMarkerDragListener(this)
+
+
     }
 
     private fun getLocationPermission() {
@@ -152,6 +159,10 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
             == PackageManager.PERMISSION_GRANTED
         ) {
             locationPermissionGranted = true
+            updateLocationUI()
+            getDeviceLocation()
+
+            //onClick()
         } else {
             ActivityCompat.requestPermissions(
                 this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -231,13 +242,14 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null) {
-
+                            latitude = lastKnownLocation!!.latitude
+                            longitude = lastKnownLocation!!.longitude
                             addresses = geocoder.getFromLocation(
                                 lastKnownLocation!!.latitude,
                                 lastKnownLocation!!.longitude,
                                 1
                             ) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-
+                            getAllList()
 
                             val address: String =
                                 addresses[0].getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
@@ -363,7 +375,7 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 * Math.sin(dLon / 2)))
         val c = 2 * Math.asin(Math.sqrt(a))
         val valueResult = Radius * c
-        val km = valueResult / 1
+        val km = valueResult / 1000
         val newFormat = DecimalFormat("####")
         val kmInDec: Int = Integer.valueOf(newFormat.format(km))
         val meter = valueResult % 1000
@@ -373,5 +385,91 @@ class DisplayMapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     + " Meter   " + meterInDec
         )
         return Radius * c
+    }
+
+    private fun getAllList() {
+        val boundBuilder = LatLngBounds.Builder()
+
+
+        for (place in globalVariable.atmList!!) {
+            val latLng = LatLng(place.atmLogitude.toDouble(), place.atmLatitued.toDouble())
+            val results = FloatArray(10)
+            Location.distanceBetween(
+                latitude,
+                longitude,
+                place.atmLogitude.toDouble(),
+                place.atmLatitued.toDouble(),
+                results
+            )
+            Log.e(
+                "OK", "Cur Lat: " + latitude.toString() +
+                        "Cur Long" + longitude.toString() +
+                        "Lat" + place.atmLogitude +
+                        "Long " + place.atmLatitued
+            )
+
+            val Radius = 6371 // radius of earth in Km
+            val lat1 = latitude
+            val lat2 = place.atmLogitude.toDouble()
+            val lon1 = longitude
+            val lon2 = place.atmLogitude.toDouble()
+            val dLat = Math.toRadians(lat2 - lat1)
+            val dLon = Math.toRadians(lon2 - lon1)
+            val a = (Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                    + (Math.cos(Math.toRadians(lat1))
+                    * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+                    * Math.sin(dLon / 2)))
+            val c = 2 * Math.asin(Math.sqrt(a))
+            val valueResult = Radius * c
+            val km = valueResult / 1
+            val newFormat = DecimalFormat("####")
+            val kmInDec = newFormat.format(km)
+            val meter = valueResult % 1000
+            val meterInDec: Int = Integer.valueOf(newFormat.format(meter))
+
+            boundBuilder.include(latLng)
+            mMap.addMarker(
+                MarkerOptions().position(latLng).title(place.atmLocation)
+                    .snippet(
+                        "" + valueResult + "   KM  " + kmInDec
+                                + " Meter   " + meterInDec
+                    )
+            )
+
+
+        }
+        // mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundBuilder.build(), 1000, 1000, 0))
+    }
+
+    override fun onMarkerClick(marker: Marker?): Boolean {
+        marker?.isDraggable = true
+        return false
+    }
+
+    override fun onMarkerDragStart(marker: Marker?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onMarkerDrag(marker: Marker?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onMarkerDragEnd(marker: Marker?) {
+        end_lat = marker!!.position.latitude
+        end_long = marker!!.position.longitude
+    }
+
+    private fun onClick() {
+
+        val results = FloatArray(10)
+        Location.distanceBetween(latitude, longitude, end_long, end_long, results)
+        val options = MarkerOptions()
+            .position(LatLng(end_lat, end_long))
+            .title("DESTINATION")
+            .snippet(results[0].toString())
+        mMap.addMarker(options)
+
+
     }
 }
