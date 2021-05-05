@@ -422,17 +422,18 @@ class DisplayMapsActivity : AppCompatActivity(),
             val c = 2 * Math.asin(Math.sqrt(a))
             val valueResult = Radius * c
             val km = valueResult / 1000
-            val newFormat = DecimalFormat("####")
+            val newFormat = DecimalFormat("####.000")
             val kmInDec = newFormat.format(km)
-            val meter = valueResult % 1000
-            val meterInDec: Int = Integer.valueOf(newFormat.format(meter))
+           /* val meter = valueResult % 1000
+            val meterInDec: Int = Integer.valueOf(newFormat.format(meter))*/
+
+
+            val kmiformat=DecimalFormat("###.000")
 
             boundBuilder.include(latLng)
             mMap.addMarker(
                 MarkerOptions().position(latLng).title(place.atmLocation)
-                    .snippet(
-                        "" + valueResult + "   KM  " + kmInDec
-                                + " Meter   " + meterInDec
+                    .snippet(kmInDec+ " KM"
                     )
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.location))
             )
