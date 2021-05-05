@@ -421,7 +421,7 @@ class DisplayMapsActivity : AppCompatActivity(),
                     * Math.sin(dLon / 2)))
             val c = 2 * Math.asin(Math.sqrt(a))
             val valueResult = Radius * c
-            val km = valueResult / 1
+            val km = valueResult / 1000
             val newFormat = DecimalFormat("####")
             val kmInDec = newFormat.format(km)
             val meter = valueResult % 1000
@@ -434,6 +434,7 @@ class DisplayMapsActivity : AppCompatActivity(),
                         "" + valueResult + "   KM  " + kmInDec
                                 + " Meter   " + meterInDec
                     )
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.location))
             )
 
 
