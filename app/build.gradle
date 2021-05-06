@@ -48,13 +48,15 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
-    
-        implementation 'com.google.android.libraries.places:places:2.4.0'
 
+    implementation 'com.google.android.libraries.places:places:2.4.0'
+
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
 
 
     // maps
-   // implementation 'com.google.android.gms:play-services-maps:16.0.0'
+    // implementation 'com.google.android.gms:play-services-maps:16.0.0'
 
     // location
     implementation 'com.google.android.gms:play-services-location:16.0.0'
